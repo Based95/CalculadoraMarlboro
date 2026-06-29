@@ -9,8 +9,7 @@ body {
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh; 
 }
 
 /* Panel Superior Rojo Marlboro */
@@ -64,19 +63,20 @@ button:active {
     justify-content: center;
     align-items: flex-start;
     padding: 20px;
-    overflow-y: auto;
 }
 
 canvas {
     background-color: white;
+    max-width: 100%; 
 }
 
-/* Panel Inferior de Resultado */
+
 .footer {
     background-color: white;
     padding: 20px;
     text-align: center;
     border-top: 1px solid #eeeeee;
+    margin-top: auto; 
 }
 
 .footer h2 {
