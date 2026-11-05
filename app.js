@@ -1,4 +1,6 @@
 const PRECIO_MARLBORO = 6.40;
+const CIGARROS_POR_PAQUETE = 20;
+const PRECIO_CIGARRO = PRECIO_MARLBORO / CIGARROS_POR_PAQUETE; 
 
 const campoPrecio = document.getElementById('campoPrecio');
 const botonCalcular = document.getElementById('botonCalcular');
@@ -6,18 +8,19 @@ const labelResultado = document.getElementById('labelResultado');
 const canvas = document.getElementById('panelVisual');
 const ctx = canvas.getContext('2d');
 
-// Cargamos la misma imagen que usaste en Java
+
 const imgPack = new Image();
 imgPack.src = 'malbro.png';
 
+const imgCigarro = new Image();
+imgCigarro.src = 'segarrillo.png';
+
 imgPack.onload = () => {
-    // Limpia el lienzo inicialmente al cargar la imagen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
 botonCalcular.addEventListener('click', calcularMarlboros);
 
-// Permite calcular al pulsar "Intro" en el teclado del móvil
 campoPrecio.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') calcularMarlboros();
 });
@@ -32,51 +35,84 @@ function calcularMarlboros() {
         return;
     }
 
-    let totalMarlboros = precioEuros / PRECIO_MARLBORO;
     
-    // Mostramos el texto con dos decimales
-    labelResultado.innerText = `Equivale a: ${totalMarlboros.toFixed(2).replace('.', ',')} paquetes`;
+    let paquetesEnteros = Math.floor(precioEuros / PRECIO_MARLBORO);
+    
+    
+    let dineroRestante = Math.round((precioEuros - (paquetesEnteros * PRECIO_MARLBORO)) * 100) / 100;
+    let totalCigarros = dineroRestante / PRECIO_CIGARRO;
 
-    dibujarPaquetes(totalMarlboros);
+    
+    let cigarrosTexto = Number.isInteger(totalCigarros) 
+        ? totalCigarros 
+        : totalCigarros.toFixed(1).replace('.', ',');
+
+    
+    let txtPaquetes = `${paquetesEnteros} ${paquetesEnteros === 1 ? 'paquete' : 'paquetes'}`;
+    let txtCigarros = totalCigarros > 0.01 ? ` y ${cigarrosTexto} cigarros` : '';
+
+    labelResultado.innerText = `Equivale a: ${txtPaquetes}${txtCigarros}`;
+
+    dibujarElementos(paquetesEnteros, totalCigarros);
 }
 
-function dibujarPaquetes(cantidadTotal) {
+function dibujarElementos(paquetes, cigarros) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let anchoPaqueteFull = 60;
-    let altoPaqueteFull = 90;
+   
+    let anchoPack = 60;
+    let altoPack = 90;
+
+   
+    let anchoCig = 10;
+    let altoCig = 90;
+
     let margenX = 15;
     let margenY = 15;
-    let gap = 15;
+    let gapPack = 15;
+    let gapCig = 8; 
 
     let x = margenX;
     let y = margenY;
 
-    let paquetesCompletos = Math.floor(cantidadTotal);
-    let parteDecimal = cantidadTotal - paquetesCompletos;
-
-    // 1. Dibujar los paquetes enteros
-    for (let i = 0; i < paquetesCompletos; i++) {
-        ctx.drawImage(imgPack, x, y, anchoPaqueteFull, altoPaqueteFull);
-        
-        x += anchoPaqueteFull + gap;
-        // Si el siguiente paquete se sale del ancho del lienzo, salta de línea
-        if (x + anchoPaqueteFull > canvas.width - margenX) {
+  
+    for (let i = 0; i < paquetes; i++) {
+        if (x + anchoPack > canvas.width - margenX) {
             x = margenX;
-            y += altoPaqueteFull + gap;
+            y += altoPack + gapPack;
         }
+        ctx.drawImage(imgPack, x, y, anchoPack, altoPack);
+        x += anchoPack + gapPack;
     }
 
-    // 2. Dibujar el paquete proporcional (recortado) sin bordes extra
-    if (parteDecimal > 0.01) {
-        let anchoProporcionalDest = anchoPaqueteFull * parteDecimal;
-        let srcWidth = imgPack.width * parteDecimal;
+  
+    let cigarrosEnteros = Math.floor(cigarros);
+    let decimalCigarro = cigarros - cigarrosEnteros;
 
-        // drawImage(imagen, srcX, srcY, srcW, srcH, destX, destY, destW, destH)
+    for (let i = 0; i < cigarrosEnteros; i++) {
+        if (x + anchoCig > canvas.width - margenX) {
+            x = margenX;
+            y += altoCig + gapPack;
+        }
+        ctx.drawImage(imgCigarro, x, y, anchoCig, altoCig);
+        x += anchoCig + gapCig;
+    }
+
+  
+    if (decimalCigarro > 0.05) {
+        if (x + (anchoCig * decimalCigarro) > canvas.width - margenX) {
+            x = margenX;
+            y += altoCig + gapPack;
+        }
+
+        
+        let anchoProporcionalDest = anchoCig * decimalCigarro;
+        let srcWidth = imgCigarro.width * decimalCigarro;
+
         ctx.drawImage(
-            imgPack,
-            0, 0, srcWidth, imgPack.height,        // Recorte del archivo original
-            x, y, anchoProporcionalDest, altoPaqueteFull // Renderizado en la pantalla
+            imgCigarro,
+            0, 0, srcWidth, imgCigarro.height,
+            x, y, anchoProporcionalDest, altoCig
         );
     }
 }
